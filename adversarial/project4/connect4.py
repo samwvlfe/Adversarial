@@ -92,7 +92,7 @@ Hints:
 import math
 
 #-----------------------------------------------------------------------
-#returns a list of columns where the specified player can go on his turn
+# Returns a list of columns where the specified player can go on his turn
 #-----------------------------------------------------------------------
 def get_child_boards(player, board):
     """
@@ -120,7 +120,7 @@ def get_child_boards(player, board):
     return res
 
 #-----------------------------------------------------------------
-#function that gives us an evaluation of player that has advantage
+# Function that gives us an evaluation of player that has advantage
 #-----------------------------------------------------------------
 def evaluate(player, board):
     """
@@ -226,17 +226,51 @@ def minimax(player, board, depth_limit):
 
 ### Please finish the code below ##############################################
 ###############################################################################
+
+    """Evaluate value of current board for the player with depth_limit"""
     def value(player, board, depth_limit):
-        pass
+        if depth_limit == 0 or board.is_terminal():
+            return evaluate(max_player, board)
 
+        if player == max_player:
+            return max_value(player, board, depth_limit)
+
+        else: 
+            return min_value(player, board, depth_limit)
+
+
+    """Calculate the max_value for the max_player"""
     def max_value(player, board, depth_limit):
-        pass
-    
-    def min_value(player, board, depth_limit):
-        pass
+        # Initialize to negative infinity (dont know how low vals are)
+        v = -float('inf')
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
+        # Find max value from all possible plays from all children states
+        for col, child_board in get_child_boards(player, board):
+            v = max(v, value(next_player, child_board, depth_limit - 1))
+        return v
+    
+    """Calculate the min_value for the min_player"""
+    def min_value(player, board, depth_limit):
+        # Initialize to positive infinity
+        v = float('inf')
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+
+        # Find min value from all possible plays from all children states
+        for col, child_board in get_child_boards(player, board):
+            v = min(v, value(next_player, child_board, depth_limit - 1))
+        return v
+
+    # Initialize score to negative infinity
+    score = -float('inf')
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-    score = -math.inf
+
+    # Iterate through possible moves
+    for col, child_board in get_child_boards(player, board):
+        child_score = value(next_player, child_board, depth_limit - 1)
+        if child_score > score:
+            score = child_score
+            placement = col  # Store the column with the best move
 
 ###############################################################################
     return placement
@@ -270,17 +304,67 @@ def alphabeta(player, board, depth_limit):
 
 ### Please finish the code below ##############################################
 ###############################################################################
+
+    """ Evaluate the value of the current board for the player with depth limitation and pruning"""
     def value(player, board, depth_limit):
-        pass
+        if depth_limit == 0 or board.is_terminal():
+            return evaluate(max_player, board)
 
-    def max_value(player, board, depth_limit):
-        pass
+        if player == max_player:
+            return max_value(player, board, depth_limit, alpha, beta)
+        else:
+            return min_value(player, board, depth_limit, alpha, beta)
+
     
-    def min_value(player, board, depth_limit):
-        pass
+    """Calculate the maxi value for the maximizing player with pruning"""
+    def max_value(player, board, depth_limit):
+        # Initialize to negative infinity
+        v = -float('inf')
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
+        # Loop through the possible moves in the possible next states
+        # If value more than Beta, prune
+        # If value more than alpha, update
+        # Return max value from the possile states and moves
+        for col, child_board in get_child_boards(player, board):
+            v = max(v, value(next_player, child_board, depth_limit - 1, alpha, beta))
+            if v >= beta:
+                return v  # Prune
+            alpha = max(alpha, v)
+        return v
+    
+    """Calculate the min value for the minimizing player with pruning"""
+    def min_value(player, board, depth_limit):
+        # Initialize to positive infinity
+        v = float('inf')
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+
+        # Loop through the possible moves in the possible next states
+        # If value less than alpha, prune
+        # If value less than beta, update
+        # Return min value from the possile states and moves
+        for col, child_board in get_child_boards(player, board):
+            v = min(v, value(next_player, child_board, depth_limit - 1, alpha, beta))
+            if v <= alpha:
+                return v  # Prune
+            beta = min(beta, v)
+        return v
+
+    score = -float('inf')
+    # Slpha starts at negative infinity
+    alpha = -float('inf')
+    # Beta starts at positive infinity
+    beta = float('inf')
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-    score = -math.inf
+
+    # Iterate through all possible moves
+    for col, child_board in get_child_boards(player, board):
+        child_score = value(next_player, child_board, depth_limit - 1, alpha, beta)
+        if child_score > score:
+            score = child_score
+            # Update the best column
+            placement = col 
+        alpha = max(alpha, score)
 ###############################################################################
     return placement
 
