@@ -91,6 +91,9 @@ Hints:
 # use math library if needed
 import math
 
+#-----------------------------------------------------------------------
+#returns a list of columns where the specified player can go on his turn
+#-----------------------------------------------------------------------
 def get_child_boards(player, board):
     """
     Generate a list of succesor boards obtained by placing a disc 
@@ -116,7 +119,9 @@ def get_child_boards(player, board):
             res.append((c, tmp_board))
     return res
 
-
+#-----------------------------------------------------------------
+#function that gives us an evaluation of player that has advantage
+#-----------------------------------------------------------------
 def evaluate(player, board):
     """
     This is a function to evaluate the advantage of the specific player at the
@@ -192,7 +197,10 @@ def evaluate(player, board):
     penalty = sum([s*w for s, w in zip(adv_score, weights)])
     return reward - penalty
 
-
+#---------------------------------------------------------------------------------------
+# TO DO: Impliment value(), max_value(), min_value() to find the play for current player
+# Return: Column int for where the move is (0 index)
+#---------------------------------------------------------------------------------------
 def minimax(player, board, depth_limit):
     """
     Minimax algorithm with limited search depth.
