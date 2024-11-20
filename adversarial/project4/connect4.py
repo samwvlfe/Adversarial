@@ -350,6 +350,7 @@ def alphabeta(player, board, depth_limit):
             beta = min(beta, v)
         return v
 
+    # Initialize score to negative infinity
     score = -float('inf')
     # Slpha starts at negative infinity
     alpha = -float('inf')
@@ -399,17 +400,56 @@ def expectimax(player, board, depth_limit):
 
 ### Please finish the code below ##############################################
 ###############################################################################
+    """ Evaluate the value of the current board for the player"""
     def value(player, board, depth_limit):
-        pass
+        if depth_limit == 0 or board.is_terminal():
+            return evaluate(max_player, board)  # Use the provided evaluate() function
 
+        if player == max_player:
+            return max_value(player, board, depth_limit)
+        else:
+            return expected_value(player, board, depth_limit)
+
+    """ Calculate the maximum value for the maximizing player"""
     def max_value(player, board, depth_limit):
-        pass
-    
-    def min_value(player, board, depth_limit):
-        pass
+        # Initialize to negative infinity
+        v = -float('inf')
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
+        for col, child_board in get_child_boards(player, board):
+            v = max(v, value(next_player, child_board, depth_limit - 1))
+        return v
+    
+    ################### Calculate the EXPECTED value for the adversary assuming random moves #####################
+    def min_value(player, board, depth_limit):
+        # Initialize to 0 for averaging
+        v = 0
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+
+        child_boards = get_child_boards(player, board)
+        num_children = len(child_boards)
+
+        if num_children == 0:
+            # If no moves, return evaluation
+            return evaluate(max_player, board)
+
+        for col, child_board in child_boards:
+            # Get average value
+            v += value(next_player, child_board, depth_limit - 1) / num_children
+        return v
+
+    # Initialize the best score for maximizing player
+    score = -float('inf')
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-    score = -math.inf
+
+    # Iterate through all possible moves
+    for col, child_board in get_child_boards(player, board):
+        child_score = value(next_player, child_board, depth_limit - 1)
+        if child_score > score:
+            score = child_score
+            # Update the best column
+            placement = col
+
 ###############################################################################
     return placement
 
