@@ -226,52 +226,41 @@ def minimax(player, board, depth_limit):
 
 ### Please finish the code below ##############################################
 ###############################################################################
+    best_score = -math.inf
 
-    """Evaluate value of current board for the player with depth_limit"""
+    if board.terminal() or depth_limit == 0:
+        return None
+
+    # Nested helper functions
     def value(player, board, depth_limit):
-        if depth_limit == 0 or board.is_terminal():
+        if board.terminal() or depth_limit == 0:
             return evaluate(max_player, board)
-
         if player == max_player:
             return max_value(player, board, depth_limit)
-
-        else: 
+        else:
             return min_value(player, board, depth_limit)
 
-
-    """Calculate the max_value for the max_player"""
     def max_value(player, board, depth_limit):
-        # Initialize to negative infinity (dont know how low vals are)
-        v = -float('inf')
-        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-        # Find max value from all possible plays from all children states
-        for col, child_board in get_child_boards(player, board):
-            v = max(v, value(next_player, child_board, depth_limit - 1))
+        v = -math.inf
+        for action, new_board in get_child_boards(player, board):
+            next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+            v = max(v, value(next_player, new_board, depth_limit - 1))
         return v
-    
-    """Calculate the min_value for the min_player"""
+
     def min_value(player, board, depth_limit):
-        # Initialize to positive infinity
-        v = float('inf')
-        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-        # Find min value from all possible plays from all children states
-        for col, child_board in get_child_boards(player, board):
-            v = min(v, value(next_player, child_board, depth_limit - 1))
+        v = math.inf
+        for action, new_board in get_child_boards(player, board):
+            next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+            v = min(v, value(next_player, new_board, depth_limit - 1))
         return v
 
-    # Initialize score to negative infinity
-    score = -float('inf')
-    next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-    # Iterate through possible moves
-    for col, child_board in get_child_boards(player, board):
-        child_score = value(next_player, child_board, depth_limit - 1)
-        if child_score > score:
-            score = child_score
-            placement = col  # Store the column with the best move
-
+    # Main logic of minimax
+    for action, new_board in get_child_boards(player, board):
+        next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+        score = value(next_player, new_board, depth_limit - 1)
+        if score > best_score:
+            best_score = score
+            placement = action
 ###############################################################################
     return placement
 
@@ -304,68 +293,50 @@ def alphabeta(player, board, depth_limit):
 
 ### Please finish the code below ##############################################
 ###############################################################################
+    alpha = -math.inf
+    beta = math.inf
 
-    """ Evaluate the value of the current board for the player with depth limitation and pruning"""
-    def value(player, board, depth_limit):
-        if depth_limit == 0 or board.is_terminal():
+    if board.terminal() or depth_limit == 0:
+        return None
+
+    # Nested helper functions
+    def value_ab(player, board, depth_limit, alpha, beta):
+        if board.terminal() or depth_limit == 0:
             return evaluate(max_player, board)
-
         if player == max_player:
-            return max_value(player, board, depth_limit, alpha, beta)
+            return max_value_ab(player, board, depth_limit, alpha, beta)
         else:
-            return min_value(player, board, depth_limit, alpha, beta)
+            return min_value_ab(player, board, depth_limit, alpha, beta)
 
-    
-    """Calculate the maxi value for the maximizing player with pruning"""
-    def max_value(player, board, depth_limit):
-        # Initialize to negative infinity
-        v = -float('inf')
-        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-        # Loop through the possible moves in the possible next states
-        # If value more than Beta, prune
-        # If value more than alpha, update
-        # Return max value from the possile states and moves
-        for col, child_board in get_child_boards(player, board):
-            v = max(v, value(next_player, child_board, depth_limit - 1, alpha, beta))
+    def max_value_ab(player, board, depth_limit, alpha, beta):
+        v = -math.inf
+        for action, new_board in get_child_boards(player, board):
+            next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+            v = max(v, value_ab(next_player, new_board, depth_limit - 1, alpha, beta))
             if v >= beta:
-                return v  # Prune
+                return v  # Beta cutoff
             alpha = max(alpha, v)
         return v
-    
-    """Calculate the min value for the minimizing player with pruning"""
-    def min_value(player, board, depth_limit):
-        # Initialize to positive infinity
-        v = float('inf')
-        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
-        # Loop through the possible moves in the possible next states
-        # If value less than alpha, prune
-        # If value less than beta, update
-        # Return min value from the possile states and moves
-        for col, child_board in get_child_boards(player, board):
-            v = min(v, value(next_player, child_board, depth_limit - 1, alpha, beta))
+    def min_value_ab(player, board, depth_limit, alpha, beta):
+        v = math.inf
+        for action, new_board in get_child_boards(player, board):
+            next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+            v = min(v, value_ab(next_player, new_board, depth_limit - 1, alpha, beta))
             if v <= alpha:
-                return v  # Prune
+                return v  # Alpha cutoff
             beta = min(beta, v)
         return v
 
-    # Initialize score to negative infinity
-    score = -float('inf')
-    # Slpha starts at negative infinity
-    alpha = -float('inf')
-    # Beta starts at positive infinity
-    beta = float('inf')
-    next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-    # Iterate through all possible moves
-    for col, child_board in get_child_boards(player, board):
-        child_score = value(next_player, child_board, depth_limit - 1, alpha, beta)
-        if child_score > score:
-            score = child_score
-            # Update the best column
-            placement = col 
-        alpha = max(alpha, score)
+    # Main logic of alphabeta
+    best_score = -math.inf
+    for action, new_board in get_child_boards(player, board):
+        next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+        score = value_ab(next_player, new_board, depth_limit - 1, alpha, beta)
+        if score > best_score:
+            best_score = score
+            placement = action
+        alpha = max(alpha, best_score)
 ###############################################################################
     return placement
 
@@ -400,55 +371,45 @@ def expectimax(player, board, depth_limit):
 
 ### Please finish the code below ##############################################
 ###############################################################################
-    """ Evaluate the value of the current board for the player"""
-    def value(player, board, depth_limit):
-        if depth_limit == 0 or board.is_terminal():
-            return evaluate(max_player, board)  # Use the provided evaluate() function
+    best_score = -math.inf
 
-        if player == max_player:
-            return max_value(player, board, depth_limit)
-        else:
-            return expected_value(player, board, depth_limit)
+    if board.terminal() or depth_limit == 0:
+        return None
 
-    """ Calculate the maximum value for the maximizing player"""
-    def max_value(player, board, depth_limit):
-        # Initialize to negative infinity
-        v = -float('inf')
-        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-        for col, child_board in get_child_boards(player, board):
-            v = max(v, value(next_player, child_board, depth_limit - 1))
-        return v
-    
-    ################### Calculate the EXPECTED value for the adversary assuming random moves #####################
-    def min_value(player, board, depth_limit):
-        # Initialize to 0 for averaging
-        v = 0
-        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-
-        child_boards = get_child_boards(player, board)
-        num_children = len(child_boards)
-
-        if num_children == 0:
-            # If no moves, return evaluation
+    # Nested helper functions
+    def value_ex(player, board, depth_limit):
+        if board.terminal() or depth_limit == 0:
             return evaluate(max_player, board)
+        if player == max_player:
+            return max_value_ex(player, board, depth_limit)
+        else:
+            return exp_value(player, board, depth_limit)
 
-        for col, child_board in child_boards:
-            # Get average value
-            v += value(next_player, child_board, depth_limit - 1) / num_children
+    def max_value_ex(player, board, depth_limit):
+        v = -math.inf
+        for action, new_board in get_child_boards(player, board):
+            next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+            v = max(v, value_ex(next_player, new_board, depth_limit - 1))
         return v
 
-    # Initialize the best score for maximizing player
-    score = -float('inf')
-    next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+    def exp_value(player, board, depth_limit):
+        total_value = 0
+        actions = get_child_boards(player, board)
+        if not actions:
+            return evaluate(max_player, board)
+        prob = 1 / len(actions)  # Uniform probability
+        for action, new_board in actions:
+            next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+            total_value += prob * value_ex(next_player, new_board, depth_limit - 1)
+        return total_value
 
-    # Iterate through all possible moves
-    for col, child_board in get_child_boards(player, board):
-        child_score = value(next_player, child_board, depth_limit - 1)
-        if child_score > score:
-            score = child_score
-            # Update the best column
-            placement = col
+    # Main logic of expectimax
+    for action, new_board in get_child_boards(player, board):
+        next_player = board.PLAYER1 if player == board.PLAYER2 else board.PLAYER2
+        score = value_ex(next_player, new_board, depth_limit - 1)
+        if score > best_score:
+            best_score = score
+            placement = action
 
 ###############################################################################
     return placement
